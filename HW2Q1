@@ -1,0 +1,147 @@
+import copy
+
+def createMatrix():
+    print("Enter the dimensions of your matrix")
+    print("Number of Rows: ")
+    numbRow = int(input())
+    print("Number of columns: ")
+    numbCol = int(input())
+
+    usersMatrix = []
+    for r in range(numbRow):
+        inp = input("input row with commas seperating")
+        rows = inp.split(",") #each row is created
+        for x in range(len(rows)):
+            rows[x] = float(rows[x]) #converts each str to float within list
+        usersMatrix.append(rows)
+    return usersMatrix
+
+matrix1 = createMatrix()
+matrix2 = createMatrix()
+
+def addMatrices(mat1, mat2):
+    if (len(mat1) == len(mat2)) and (len(mat1[0]) == len(mat2[0])): #only can add if the dimensions are the same
+        addedMatrix = copy.deepcopy(matrix1) #creates a new matrix that is the same as matrix1 without changing matrix1
+        for row in range(len(mat1)): #each element in the row and the column
+            for col in range(len(mat1)):
+                addedMatrix[row][col] = mat1[row][col] + mat2[row][col] #adds elements of location rowxcol and store at rowxcol in addedMatrix
+        return(addedMatrix)
+    else:
+        return("sorry dimensions do not permit addition")
+
+addedMatrix = addMatrices(matrix1, matrix2)
+print("your two matrices added is: "+ str(addedMatrix))
+
+def subtractMatrices(mat1, mat2): #same code as function above, except it is subtraction
+    if (len(mat1) == len(mat2)) and (len(mat1[0]) == len(mat2[0])):
+        subtractedMatrix = copy.deepcopy(matrix1) #idea for deepcopy from stackoverflow
+        for row in range(len(mat1)):
+            for col in range(len(mat1)):
+                subtractedMatrix[row][col] = mat1[row][col] - mat2[row][col]
+        return(subtractedMatrix)
+    else:
+        return("sorry the dimensions do not permit subtraction")
+
+subtractedMatrix = subtractMatrices(matrix1, matrix2)
+print("your two matrices subtracted is: " + str(subtractedMatrix))
+
+def multiplyMatrices(mat1, mat2):
+    if len(mat2) == len(mat1[0]):       #if the # of rows in mat2 equals the # of columns in mat1
+        newMatrix = [[0 for col in range(len(mat2[0]))] for row in range(len(mat1))] #creates a new matrix with dimensions of row(mat1) and col(mat2)
+        for r in range(len(mat1)): #loops through rows in mat1
+            for c in range(len(mat2[0])): #loops through columns in mat2
+                for co in range(len(mat2)): #goes by each row in mat2
+                    newMatrix[r][c] += mat1[r][co] * mat2[co][c] #multiplies the two locations in mat1 and mat2, sets the rowxcol equal. Adds to itself to keep updating
+        return(newMatrix)
+    else:
+        return("the dimensions do not permit multiplication")
+
+multmat = multiplyMatrices(matrix1, matrix2)
+print("your two matrices multiplied is: " + str(multmat))
+
+def transposeMatrix(mat1):
+    row = len(mat1)
+    col = len(mat1[0])
+    transMatrix = []
+
+    for c in range(col): #goes through each col then row because the dimensions are switched
+        listIn = []
+        for r in range(row):
+            listIn.append(mat1[r][c])
+        transMatrix.append(listIn) #places the lists inside the transMatrix
+    return(transMatrix)
+
+matrix = transposeMatrix(matrix1)
+print("your first matrix transposed is: " + str(matrix))
+matrix = transposeMatrix(matrix2)
+print("your second matrix transposed is: " + str(matrix))
+
+def symmetricMatrix(mat1):
+    transMat = transposeMatrix(mat1)
+    if transMat == mat1: #if the transposed matrix equals the original, they are symmetric
+        return(True)
+    else:
+        return(False)
+
+if symmetricMatrix(matrix1) == True:
+    print("your first matrix is symmetric")
+else:
+    print("your first matrix is not symmetric")
+
+if symmetricMatrix(matrix2) == True:
+    print("your second matrix is symmetric")
+else:
+    print("your second matrix is not symmetric")
+
+
+def trace(mat1): #adds the diagonal of a matrix
+    total = 0
+    for r in range(len(mat1)): #searches through the row
+        for c in range(len(mat1[0])): #searches through the col
+            if r == c:
+                total += mat1[r][c] #has to be adding R0C0 + R1C1 + ...
+    return total #returns diagonals added
+
+def innerProduct(mat1, mat2):
+    mat2Trans = transposeMatrix(mat2) #takes the transpose of mat2
+    mat = multiplyMatrices(mat1,mat2Trans)
+        #multiplyMatrices could return a string which cannot be traced, so if statement is to check
+    if mat == "the dimensions do not permit multiplication":
+        return "there is no inner product due to dimensions"
+    else:
+        total = trace(mat)
+        return total
+
+def weightDiag(mat):
+    diagList = [] #code adds diagnols to this list
+    for r in range(len(mat)):
+        for c in range(len(mat[0])):
+            if r == c:
+                diagList.append(mat[r][c])
+    return diagList
+
+
+def weightedIP(mat1, mat2):
+    mat2Trans = transposeMatrix(mat2)  #takes the transpose of mat2
+    mat = multiplyMatrices(mat1, mat2Trans)
+    if mat == "the dimensions do not permit multiplication":
+        return "there is no weighted inner product due to dimensions"
+    else:
+        diagList = weightDiag(mat) #gets list of diagnols
+        weightList = []
+        length = len(diagList)
+        print("You will need to input " + str(length) + " numbers that add to one")
+        for index in range(length): #adds users weights to weightList
+            weight = float(input("input weight of number: "))
+            weightList.append(weight)
+        total = 0
+        for i in range(length):
+            total = (diagList[i]*weightList[i]) + total
+        return total
+
+
+ipMat = innerProduct(matrix1,matrix2)
+print("your inner product is: " + str(ipMat))
+
+wipMat = weightedIP(matrix1,matrix2)
+print("your weighted inner product is: " + str(wipMat))
