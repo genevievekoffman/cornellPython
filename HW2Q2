@@ -1,0 +1,113 @@
+
+def newPt():
+    userInp = input("Enter a point (x,y): ")
+    t = userInp.split(",")  # makes a list of the two numbers as strings
+    for i in range(2):  # always 2 elements in a point
+        t[i] = float(t[i])  # converts strings to integers
+    tup1 = (t[0], t[1])  #makes a tuple with the points in list t
+    return tup1
+
+aboveLine = []
+belowLine = []
+ontheLine = []
+
+def onLine(pt): #func takes in a point and checks if the point is on y=x
+    if (pt[0] == pt[1]):
+        return True
+    else:
+        return False
+
+def location(pt):
+    if (onLine(pt) == True): #if the point is on the line, it is added to onLine list
+        ontheLine.append(pt)
+    else:
+        linePt = (pt[0], pt[0]) #creates the point on y=x that correlates with x value. It will be (x,x)
+        if pt[1] > linePt[1] : #compares the y values of both points
+            aboveLine.append(pt)
+        elif pt[1] < linePt[1]:
+            belowLine.append(pt)
+        else:
+            print("something went wrong")
+
+print("how many points would you like to input?")
+numbPts = int(input())
+
+list = []
+for index in range(numbPts): #making the amount of points user wanted
+    pt = newPt()
+    list.append(pt) #adds new point to list
+
+for i in range(len(list)): #for each point(tuple) in list
+    location(list[i]) #it will send the point to location function
+
+print("These are the points above the y=x line: " + str(aboveLine))
+print("These are the points below the y=x line: " + str(belowLine))
+print("These are the points on the y=x line: " + str(ontheLine))
+
+
+if (len(belowLine) > len(ontheLine)) and (len(belowLine) > len(aboveLine)):
+    max = "below"
+    if len(aboveLine) > len(ontheLine):
+        mid = "above"
+        min = "on"
+    else:
+        mid = "on"
+        min = "above"
+elif (len(ontheLine) > len(aboveLine)) and (len(ontheLine) > len(belowLine)):
+    max = "on"
+    if (len(aboveLine) > len(belowLine)):
+        mid = "above"
+        min = "below"
+    else:
+        mid = "below"
+        min = "above"
+else:
+    max = "below"
+    if len(aboveLine) > len(ontheLine):
+        mid = "above"
+        min = "on"
+    else:
+        mid = "on"
+        min = "above"
+
+print(max + ">" + mid + ">" + min)
+
+
+
+
+
+
+
+
+# def sort(above,below,on):
+#     list = [[len(above), "above line"], [len(below),"below line"], [len(on), "on the line"]]
+#     newList = []
+#
+#     #finds the max, adds to newList
+#     max = 0 #smallest possibility
+#     bigList = 0
+#     for r in range(len(list)):
+#         if list[r][0] > max: #if the element at [0] in sublist[r] of list is greater than max
+#             bigList = list[r] #largest list
+#             max = list[r][0] #max becomes the larger number
+#     newList.append(bigList)
+#
+#     #finds the min, adds to newList
+#     min = list[0][0]
+#     smallList = 0
+#     for r in range(len(list)): #same code as above, except for min
+#         if list[r][0] < min:
+#             smallList = list[r]
+#             min = list[r][0]
+#     newList.append(smallList)
+#
+#     # finds the middle list
+#     for r in range(len(list)):
+#         if list[r] not in newList: #if the sublist does not exist in newList, it will be the middle list
+#             newList.insert(1,list[r])
+#
+#     return newList #it is sorted from largest to smallest
+#
+# sortedList = sort(aboveLine, belowLine, ontheLine)
+#
+# print("This is the number of points for each area: " + str(sortedList))
