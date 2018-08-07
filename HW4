@@ -1,4 +1,4 @@
-##NODE CLASS
+##LIST CLASS
 '''creates lists, instead of using pythons built in list'''
 from NodeClass import Node
 
@@ -292,3 +292,460 @@ class List:
                 ptL1 = ptL1.getNext()
         return result
 
+#####NODE CLASS###################
+
+class Node:
+    def __init__(self, mydata, id, next = None, previous = None): #person object is a myData
+        self.data = mydata #object type
+        self.next = next
+        self.previous = previous
+        self.ID = id
+
+    def getID(self):
+        return self.ID
+
+    def setNext(self, node): #node is an object
+        self.next = node
+
+    def setPrevious(self, node):
+        self.previous = node
+
+    def getNext(self):
+        return self.next
+
+    def getPrevious(self):
+        return self.previous
+
+    def getData(self):
+        return self.data #object
+
+    def makeNone(self): #makes the node = None --> node is deleted
+        self.data = None
+###########PERSON CLASS############
+
+'''creates a person object with an ID, a name, an age, a list of friends, list of books
+and list of history of books '''
+from ListClass import List
+
+class Person:
+    num_made = 0
+    allPeople = List()
+
+    def __init__(self, name, age):
+        self.ID = Person.num_made
+        Person.num_made = Person.num_made + 1
+        self.name = name
+        self.age = age
+        self.myFriends = List()  # creates an empty list of friends
+
+        self.myBooks = List()  # empty list of books
+        self.historyMyBooks = List()
+        self.myAnnotatedBooks = List() #books person has annotated
+
+        Person.allPeople.append(self) #adds the person to the list
+
+    def getID(self):
+        return self.ID
+
+    def getName(self):
+        return self.name
+
+    def getAge(self):
+        return self.age
+
+    def getMyFriends(self):
+        return self.myFriends
+
+    def getMyBooks(self):
+        return self.myBooks
+
+    def getHistoryOfMyBooks(self):
+        return self.historyMyBooks
+
+    def addBook(self, book):  # only one copy of each book in simulation
+        self.myBooks.append(book)  # adds book into inventory
+        self.historyMyBooks.append(book) #adds book into history of inventory too
+        if not self.historyMyBooks.findObj(book):  # if the book does not exist
+            self.historyMyBooks.append(book)  #also added to history of my books
+
+    def removeBook(self, book):
+        if self.myBooks.findObj(book):  # if the book exists in list of books
+            self.myBooks.remove(book)
+
+    def addFriend(self, friend):  # takes person obj
+        if self.myFriends.findObj(friend):  # if they are already friends
+            return None
+        else:  # adds them
+            self.myFriends.append(friend)  # they become friends
+
+    def unFriend(self, friend):
+        if self.myFriends.findObj(friend):  # if they are friends
+            self.myFriends.remove(friend)  # removes both person objects from each friend list
+        else:
+            return None  # they are not friends
+
+    def searchBooksTitle(self, title):  #searches through myBooks and finds a book by its title
+        for b in range(self.myBooks.size):
+            if self.myBooks.findID(b).getData().getName() == title:  # they have the same title
+                return self.myBooks.findID(b).getData()  # returns the book object
+        else:
+            return None  # book title doesn't exist within friends bookList
+
+    def searchBooksAuthor(self, author): #searches through myBooks and finds a book with a specific author
+        for b in range(self.myBooks.size):
+            if self.myBooks.findID(b).getData().getAuthor() == author: #they have the same author
+                return self.myBooks.findID(b).getData() #returns the book object
+
+    def searchBooksRecVal(self, recVal): #searches through, finds a book with a specific recVal
+        for b in range(self.myBooks.size):
+            if self.myBooks.findID(b).getData().getRecValue() == recVal:
+                return self.myBooks.findID(b).getData()
+
+    def searchBookTopic(self, topic): #finds a book with a certain genre
+        for b in range(self.myBooks.size):
+            if self.myBooks.findID(b).getData().getSubject() == topic:
+                return self.myBooks.findID(b).getData()
+
+    def takeBook(self, book, friend):  # book is a book object and friend is a person object
+        self.myBooks.append(book)  # adds book to their list
+        self.historyMyBooks.append(book) #also adds to history
+        friend.myBooks.remove(book)  # removes book from friends list
+
+    def takeBookByTitle(self, bookTitle, friend): #borrows book by the title
+        bookObj = self.findBookbyTitle(bookTitle)
+        self.myBooks.append(bookObj)
+        self.historyMyBooks.append(bookObj)
+        friend.myBooks.remove(bookObj)
+
+    def findBookbyTitle(self, bookTitle):
+        for b in range(self.myBooks.size):
+            if self.myBooks.findID(b).getName() == bookTitle:
+                return self.myBooks.findID(b)
+
+    def borrowBookAuthor(self, author):#borrows a book by it's author
+        if self.myFriends.isEmpty():
+            return "No friends, nothing to do"
+        for friend in range(self.myFriends.size):  # searches through each friend
+            f = self.myFriends.findID(friend).getData()  # returns the person object
+            found = f.searchBooksAuthor(author)  #found is a book object
+
+            if found != None:  # found book object with title
+                if f.myFriends.findObj(self):  # must both be friends
+                    self.takeBook(found, f)  # switches location of book
+                else:
+                    return "They are not mutual friends. Borrowing a book cannot happen"
+            else:
+                return "Cannot find the book in any of your friends ... :("
+
+    def borrowBookByTopic(self, topic): #topic is a string
+        if self.myFriends.isEmpty():
+            return "No friends, nothing to do"
+        for friend in range(self.myFriends.size):
+            f = self.myFriends.findID(friend).getData()
+            found = f.searchBookTopic(topic) #finds book object
+            if found!= None:
+                if f.myFriends.findObj(self): #they are both friends
+                    self.takeBook(found, f)
+                else:
+                    return "They are not mutual friends. Borrowing a book cannot happen"
+            else:
+                return "cannot find a book with this topic in any of your friends list:( "
+
+    def borrowBookRecVal(self, recValue):   #recValue is an integer
+        if self.myFriends.isEmpty():
+            return "No friends, nothing to do"
+        for friend in range(self.myFriends.size):  # searches through each friend
+            f = self.myFriends.findID(friend).getData()  # returns the person object
+            if not f.myBooks.isEmpty(): #has books
+                found = f.searchBooksRecVal(recValue)  #found is a book object
+                if found != None:  # found book object with title
+                    if f.myFriends.findObj(self):  # must both be friends
+                        self.takeBook(found, f)  # switches location of book
+                    else:
+                        return "They are not mutual friends. Borrowing a book cannot happen"
+                else:
+                    return "Cannot find a book with this rating in any of your friends lists ... :("
+
+    def borrowBookTitle(self, title):    #borrows a book by it's title
+        if self.myFriends.isEmpty():
+            return "No friends, nothing to do"
+        for friend in range(self.myFriends.size):  # searches through each friend
+            f = self.myFriends.findID(friend).getData()  # returns the person object
+            found = f.searchBooksTitle(title)  # found is a book object
+
+            if found != None:  # found book object with title
+                if f.myFriends.findObj(self):  # must both be friends
+                    self.takeBook(found, f)  # switches location of book
+                else:
+                    return "They are not mutual friends. Borrowing a book cannot happen"
+            else:
+                return "Cannot find the book in any of your friends ... :("
+
+    def rateBook(self, book, rating):  #book is an object and rating is a float
+        if self.historyMyBooks.findObj(book): #only happens if the book is your historyList
+            book.giveRating(rating)
+
+    def annotateBook(self, book):   #book is a book object
+        if self.myBooks.findObj(book): #if the book exists in their bookList
+            if book.hasBeenAnnotated(): #checks if it has been annotated
+                return "This book has already been annotated, so you cannot"
+            else:
+                self.annotate(book)
+                self.myAnnotatedBooks.append(book) #adds the annotated book to their list
+
+    def annotate(self, book):  #prompts user for annotations    #helper function
+        write = input("What would you like to annotate?")
+        book.setAnnotations(write)
+
+    def findBook(self, b, title): #b is the current book
+        if b.getName() == title: #same title
+            return True
+        else: return False
+
+    def checkForBook(self, title): #returns None or Person object
+        if self.myBooks.isEmpty():
+            return None
+        else: #they have books to check
+            for b in range(self.myBooks.size): #searches through every book
+
+                book = self.myBooks.findID(b).getData() #book is a book object
+                #print(book)
+                if book.getName() == title:
+                    return self #returns the current person object
+
+    def lessThanAlpha(self, b): #compares two names. returns true or false
+        #b is a person object
+        aName = self.name   #strings
+        bName = b.getName()
+        #compares the strings
+        return aName < bName       #< compares the letters in the names
+
+    def lessThanIDs(self, b): #compares two ID's
+        aID = self.ID
+        bID = b.getID()
+        return aID < bID #compares the numbers
+
+    def lessThanAge(self, b): #compares ages of people
+        aAge = self.age
+        bAge = b.getAge()
+        return aAge < bAge
+
+    def usePathToBorrow(self, list, bookName): #list of people, and book title
+        per = list.back.getData() #person object
+        perBefore = list.back.getPrevious().getData() #person object before
+        perBefore.takeBookByTitle(bookName, per)
+        #this only works with 2 elements in list, it must be modified for more
+
+##############BOOK CLASS##################
+
+'''create a book object with a title, an ID, an author, subject, version #, annotations, recomendation value'''
+import random #edition version number is randomly created
+from ListClass import List
+
+class Book:
+    num_made = 0
+    allBooks = List()
+
+    def __init__(self, myTitle, myAuthor, mySubject, initOwner):
+        self.ID = Book.num_made
+        Book.num_made + 1
+        Book.allBooks.append(self)
+
+        self.title = myTitle
+        self.author = myAuthor
+        self.subject = mySubject
+        self.owner = initOwner #it will change when the book is in someone elses inventory
+        initOwner.addBook(self) #when book is created, it is placed in owners bookList
+        self.editionVersion = random.randint(0,20)
+
+        self.recValue = 0 #all books start at 0 stars, they can have a max of 5
+        self.totalRates = 0 #all the rating #'s added up
+        self.timesRated = 0 #how many times this book has been rated
+
+        self.annotations = " "
+        self.beenAnnotated = False #at the start, no one has annotated it
+
+    def setBooksInOwner(self):  #adds book/self to both lists
+        self.owner.myBooks.append(self)
+        self.owner.historyMyBooks.append(self)
+
+    def getOwner(self):
+        return self.owner
+
+    def getID(self):
+        return self.ID
+
+    def getName(self): #returns title
+        return self.title
+
+    def getRecValue(self):
+        return self.recValue
+
+    def giveRating(self, rate): #rate is a float
+        self.totalRates += rate #updates the addition of all rates
+        self.timesRated += 1 #each time it is rated, timesRated goes up by 1
+        self.recValue = self.totalRates / self.timesRated
+
+    def hasBeenAnnotated(self): #either true or false
+        return self.beenAnnotated
+
+    def setAnnotations(self, writing): #writing is a string
+        self.annotations = writing
+        self.beenAnnotated = True #beenAnnotated is now true- no one else can annotate it
+
+    def getAnnotations(self):
+        return self.annotations
+
+    def getAuthor(self):
+        return self.author
+
+    def getSubject(self):
+        return self.subject
+
+    def setOwner(self, owner): #it would only happen when people borrow books
+        self.owner = owner
+
+    def lessThanAlpha(self, b): #compares two titles. returns true or false
+        #b is a person object
+        aName = self.title   #strings
+        bName = b.getName()
+        return aName < bName       #< compares the letters in the names
+        
+  ################RUN SIMULATION FILE("CLASSYACTION")###################
+  
+  from PersonClass import Person
+from BookClass import Book
+from ListClass import List
+import random
+
+def runOrig():
+    def showProgramState():
+        print("These are the people in the simulation in format: Name, age, ID, list of friends, list of my books \n")
+        print(str(A.getName()) + ", " + str(A.getAge()) + ", " + str(A.getID()) + ", " + str(A.myFriends.printList()) + ", " + str(A.myBooks.printList()))
+        print(str(B.getName()) + ", " + str(B.getAge()) + ", " + str(B.getID()) + ", " + str(B.myFriends.printList()) + ", " + str(B.myBooks.printList()))
+        print(str(C.getName()) + ", " + str(C.getAge()) + ", " + str(C.getID()) + ", " + str(C.myFriends.printList()) + ", " + str(C.myBooks.printList()))
+        print(str(D.getName()) + ", " + str(D.getAge()) + ", " + str(D.getID()) + ", " + str(D.myFriends.printList()) + ", " + str(D.myBooks.printList()))
+
+    PeopleList = List() #empty
+
+    A = Person("Henry", 10)
+    B = Person("Bob", 17)
+    C = Person("Sam", 20)
+    D = Person("John", 3)
+    PeopleList.append(A)
+    PeopleList.append(B)
+    PeopleList.append(C)
+    PeopleList.append(D)
+
+    A.addFriend(B)
+    B.addFriend(C)
+    C.addFriend(B)
+    C.addFriend(A)
+    C.addFriend(D)
+    A.addFriend(C)
+
+    BooksCreated = List()  #empty list of books
+
+    book1 = Book("Romeo & Juliette", "Shakespeare", "Romance", A)
+    book2 = Book("Pride and Prejudice", "Jane Austen", "Romance", C)
+    book3 = Book("Gone with the Wind", "Margaret Mitchell", "Fiction", C)
+
+    BooksCreated.append(book1)
+    BooksCreated.append(book2)
+    BooksCreated.append(book3)
+
+    showProgramState()
+
+    B.borrowBookTitle("Gone with the Wind")
+    print("\n" + B.getName() + " wants to borrow " + "Gone with the Wind")
+    print("\tThese are now " + B.getName() + "'s books: " + B.myBooks.printList())
+    print("\tThese are now " + C.getName() + "'s books: " + C.myBooks.printList())
+
+    print("")
+
+    B.addFriend(D)
+    D.addFriend(B)
+    print(B.getName() + " and " + D.getName() + " are now mutual friends")
+
+    print("\n" + D.getName() + " wants to borrow a book by " + "Margaret Mitchell")
+    D.borrowBookAuthor("Margaret Mitchell")
+    print("\tThese are now " + B.getName() + "'s books: " + B.myBooks.printList())
+    print("\tThese are now " + D.getName() + "'s books: " + D.myBooks.printList())
+
+    print("\nBook History of " + C.getName() + " is: " + C.historyMyBooks.printList())
+
+    print("\n" + book3.getName() + " recommendation value is: " + str(book2.getRecValue()))
+    print(D.getName() + " has rated " + book3.getName())
+    D.rateBook(book3, 3.0)
+    print(str(book3.getName()) + " recommendation value is now: " + str(book3.getRecValue()))
+
+
+    print("\n" + C.getName() + " is annotating a book ")
+    C.annotateBook(C.myBooks.findID(0).getData())
+    ann = C.myBooks.findID(0).getData().getAnnotations()
+    print("\t" + C.myBooks.findID(0).getData().getName() + " annotations are: " + "\"" + ann + "\"")
+    print(C.getName() + "'s annotated books are: " + C.myAnnotatedBooks.printList())
+
+    print("\n" + B.getName() + " wants to borrow a book by Jane Austen")
+    B.borrowBookAuthor("Jane Austen")
+    print("These are now " + B.getName() + "'s books: " + B.myBooks.printList()) #bob borrows Jane Austen
+    print("These are now " + C.getName() + "'s books: " + C.myBooks.printList())
+
+    ## sam wants his annotated book back
+    samPathList = List()
+    FriendsToCheckList = List()
+    FriendsToCheckList.append(C)
+
+    p1 = FriendsToCheckList.getFront().getData().getName()
+    pWbook= FriendsToCheckList.BFS("Pride and Prejudice", samPathList )
+    print("\n" + p1 + " wants to get his annotated books back")
+    bookName = C.myAnnotatedBooks.getFront().getData().getName()
+    print(bookName + " is in " + pWbook.getName() + "'s book inventory")
+    print("The path to his book is " + samPathList.printList())
+    C.usePathToBorrow(samPathList, bookName) #looking for his annotated book
+    print(C.getName() + " has his book back")
+
+
+
+    pathList = List() #will hold the people/friends in order to get to the person with the book
+    friendsToCheck = List()
+    friendsToCheck.append(A) #starts with A
+    person1 = friendsToCheck.getFront().getData().getName() #name of original first person in list
+    personWBook = friendsToCheck.BFS("Pride and Prejudice", pathList) #person object
+
+    print("\n" + person1 + " is looking for \"Pride and Prejudice\"" + "\n\t" + personWBook.getName() + " has it!" )
+    print("This is his path to get the book: " + pathList.printList())
+
+    print("\nHERE IS SOME SORTING: ")
+
+    print("These are the people sorted in order of their names: " + Person.allPeople.mergeSortName().printList())
+    print("These are the people sorted in order of their ID's: " + Person.allPeople.mergeSortID().printList())
+    print("These are the books sorted in order of their titles: " + Book.allBooks.sortBooksByTitle().printList())
+
+    #Person.allPeople.bucketSortAge()
+
+nameList = ["Bob", "Sam", "Henry", "Sara", "Philip", "Jack", "Sean", "Jane", "George", "Anna", "Jenna", "Tom", "Ted", "Drake", "Jay", "Alexa", "Kate", "Vicki", "Liam", "Liv"]
+    #allowed to use this built in list because it isn't essentiel
+print("If you would like to chose the amount of people in the simulation, type 0, otherwise type any other character")
+inp = int(input())
+if inp == 0:
+    PeopleList = List()
+
+    print("How many people do you want? Input an int from 5-20 please")
+    numPpl = int(input())
+    if numPpl > 20 or numPpl < 5:
+        print("Sorry this number is not allowed")
+    else:
+        for p in range(numPpl):
+            newPerson = Person(nameList[p], random.randint(5,50))
+            PeopleList.append(newPerson)
+
+        print("These are the people in the simulation: " + PeopleList.printList())
+
+        book1 = Book("Romeo & Juliette", "Shakespeare", "Romance", PeopleList.findID(random.randint(0, PeopleList.size-1)).getData())
+        book2 = Book("Pride and Prejudice", "Jane Austen", "Romance", PeopleList.findID(random.randint(0, PeopleList.size-1)).getData())
+        book3 = Book("Gone with the Wind", "Margaret Mitchell", "Fiction", PeopleList.findID(random.randint(0, PeopleList.size-1)).getData())
+
+        print("\nSorry the user input simulation does not show the codes abilities, run the code again and press 1 :)) ")
+else:
+    runOrig()
