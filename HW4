@@ -1,0 +1,294 @@
+##NODE CLASS
+'''creates lists, instead of using pythons built in list'''
+from NodeClass import Node
+
+class List:
+
+    def __init__(self):
+        self.size = 0 #starts at 0
+        self.front = None
+        self.back = None
+
+    def getFront(self):
+        return self.front
+
+    def getBack(self):
+        return self.back
+
+    def isEmpty(self): #returns true if the list has no elements
+        if self.size == 0:
+            return True
+        else:
+            return False
+
+    def append(self, data): #adds object to the end of List
+        if self.isEmpty():
+            self.front = Node(data, self.size) #first element becomes the data object
+                #the id is the # of elements in the list when it is created
+            self.back = self.front
+            self.size += 1
+        else:
+            temp = Node(data, self.size) #temporary variable to hold the object
+            self.back.setNext(temp)
+            temp.setPrevious(self.back)
+            self.back = temp #temp becomes the last object in List
+            self.size += 1
+
+    def prepend(self, data): #adds object to the front of List
+        if self.isEmpty():
+            self.front = Node(data, self.size) #first element becomes the data object
+            self.back = self.front
+            self.size += 1
+        else:
+            temp = Node(data, self.size) #similar code to append()
+            temp.setNext(self.front)
+            self.front.setPrevious(temp)
+            self.front = temp
+            self.size += 1
+
+    def remove(self, obj): #obj is an object(data of a node)
+        node = self.find(obj)
+        if node != None: #if the object exists in list
+            prev = node.getPrevious() #can be None
+            next = node.getNext() #can be None
+            if prev == None and next == None: #if it is the only node
+                node.makeNone() #deletes the node/makes it None
+                self.size = 0 #empty
+                self.front = None
+                self.back = None
+            elif prev == None: #first in list
+                next.setPrevious(None) #has no previous node
+                self.front = next
+            elif next == None: #last in list
+                prev.setNext(None)
+                self.back = prev
+            else: #it's in between two nodes
+                prev.setNext(next) #sets the previous node to have its next=node's next
+                next.setPrevious(prev) #sets the next node to have its previous= node's previous
+
+    def insert(self, data, found): #found is the node before self node
+        if self.isEmpty():
+            self.append(data)
+        else:   #assuming node is in List
+            if found == None: #it is the first object
+                return None
+            else:
+                temp = Node(data, self.size) #temporary variable
+                temp.setPrevious(found) #gives it found as its previous object
+                temp.setNext(found.getNext()) #its next object is founds original next object
+                found.setNext(temp) #changes found next to temp
+                if temp.getNext() != None: #if it's not at the end
+                    temp.getNext().setPrevious(temp) #temps next object: its previous object changes from found to temp
+                self.size += 1
+
+    def recFind(self, data, node):  #looking for data
+        if node.getData() == data: #if data is the current node's data, it has been found
+            return node
+        else:
+            if node.getNext() != None: #it's not at the end
+                return self.recFind(data, node.getNext()) #checks the next node
+            else:
+                return None #never found data
+
+    def find(self, data): #finds an object with its data
+        if self.isEmpty():
+            return None
+        else:
+            return self.recFind(data, self.front) #starts by looking at the first node
+
+    def recFindID(self, id, node): #finds a node using its ID
+        if node.getID() == id:
+            return node
+        else:
+            if node.getNext() != None:
+                return self.recFindID(id, node.getNext())
+            else:
+                return None
+
+    def findID(self, ID): #finds an object by its ID #
+        if self.isEmpty():
+            return None
+        else:
+            return self.recFindID(ID, self.front)
+
+    def printList(self): #prints the objects in the list
+        myList = " "
+        if self.isEmpty():
+            return ("[]")
+        for x in range(self.size):
+            if self.findID(x) != None:
+                myList = myList + str(self.findID(x).getData().getName()) + ", "
+        return("[" + myList + "]")
+
+    def findObj(self, obj): #returns true or false(don't have this object in list)
+        if self.isEmpty():
+            return False
+        else:
+            found = self.find(obj) #finds the object
+            if found != None:
+                return True #object exists
+            else:
+                return False
+
+    def BFS(self, title, pathList): #takes a string title - it will return the person object with the specific book
+        currPerson = self.getFront().getData() #first person object
+        p = currPerson.checkForBook(title) #recieves None or the person object
+
+        if p == None: #book has not been found
+            #needs to continue checking(recursion)
+            numbFriends = currPerson.myFriends.size
+            for f in range(numbFriends): #adds each friend to the list - needs to be checked
+                if not self.findObj(currPerson.myFriends.findID(f).getData()): #if it's not already in the list
+                    self.append(currPerson.myFriends.findID(f).getData())
+            if not pathList.findObj(currPerson): #if they don't already exist
+                pathList.append(currPerson)
+            self.remove(currPerson)  # deletes the first node, no longer needs to check it
+            if self.BFS(title, pathList) is not None: #excplicitly testing if the local variables are not none(keep passing things back up)
+                return self.BFS(title, pathList)
+        else: #has been found
+            if not pathList.findObj(currPerson): #if they don't already exist
+                pathList.append(currPerson)
+            return p
+
+    def mergeSortID(self):
+        return self.recIDsort(self)
+
+    def mergeSortName(self): #takes itself as the list
+        return self.recMsort(self) #passes self as the list
+
+    def recIDsort(self, L): #same code as recMsort, except for comparing ID's
+        if L.size <= 1:
+            return L
+        else:
+            leftSize = L.size // 2
+            left = List()
+            right = List()
+            n = 0
+            ptL = L.getFront()
+            while n < leftSize:
+                left.append(ptL.getData())
+                n += 1
+                ptL = ptL.getNext()
+            while ptL != None:
+                right.append(ptL.getData())
+                ptL = ptL.getNext()
+            left = self.recIDsort(left) #
+            right = self.recIDsort(right) #
+            return self.mergeByID(left, right) #only lines of code that is different
+
+    def mergeByID(self, L1, L2): #same code as other merges, but for ID
+        ptL1 = L1.getFront()
+        ptL2 = L2.getFront()
+        result = List()
+
+        while (ptL1 != None) and (ptL2 != None):
+            a = ptL1.getData()
+            b = ptL2.getData()
+            if a.lessThanIDs(b):  # function in person class to compare the ID's of each person object
+                result.append(a)
+                ptL1 = ptL1.getNext()
+            else:
+                result.append(b)  # b is smaller
+                ptL2 = ptL2.getNext()
+        if ptL1 == None:  # checks which one ran out (ptL1 or ptL2)
+            while ptL2 != None:
+                result.append(ptL2.getData())
+                ptL2 = ptL2.getNext()
+        if ptL2 == None:
+            while ptL1 != None:
+                result.append(ptL1.getData())
+                ptL1 = ptL1.getNext()
+        return result
+
+    def recMsort(self, L):  #takes in a list
+        '''splits the list until all objects are by themselves in lists of size 1'''
+        if L.size <= 1:  # node is alone
+            return L
+        else:
+            leftSize = L.size // 2  # divides L cleanly(int) in two
+            left = List()  # used to hold the left and right sublists
+            right = List()
+            n = 0
+            ptL = L.getFront()  # first node in L
+            while n < leftSize:  # checks each object on the left
+                left.append(ptL.getData())  # adds the data from each node
+                n += 1
+                ptL = ptL.getNext()  # moves to the next
+            while ptL != None:
+                right.append(ptL.getData())
+                ptL = ptL.getNext()  # checks the next node
+            left = self.recMsort(left)  # recursive calls
+            right = self.recMsort(right)
+            return self.mergeByName(left, right)  # once they are alone, it combines them back in order
+
+    def mergeByName(self, L1, L2):  # sorts people by their names
+        ptL1 = L1.getFront()  # starts at the first objects in list1 and list2
+        ptL2 = L2.getFront()
+        result = List()
+
+        while (ptL1 != None) and (ptL2 != None):  # goes until one of the lists runs out of nodes within it
+            a = ptL1.getData()  # object
+            b = ptL2.getData()
+            if a.lessThanAlpha(b):  # function in person class to compare the names of each person object
+                result.append(a)  # smallest is added to result
+                ptL1 = ptL1.getNext()  # goes to the next object to compare
+            else:
+                result.append(b)  # b is smaller
+                ptL2 = ptL2.getNext()
+        if ptL1 == None:  # checks which one ran out (ptL1 or ptL2)
+            while ptL2 != None:
+                result.append(ptL2.getData())
+                ptL2 = ptL2.getNext()
+        if ptL2 == None:
+            while ptL1 != None:
+                result.append(ptL1.getData())
+                ptL1 = ptL1.getNext()
+        return result
+
+    def sortBooksByTitle(self):
+        return self.recBookTitleSort(self)
+
+    def recBookTitleSort(self, L):
+        if L.size <= 1:
+            return L
+        else:
+            leftSize = L.size // 2
+            left = List()
+            right = List()
+            n = 0
+            ptL = L.getFront()
+            while n < leftSize:
+                left.append(ptL.getData())
+                n += 1
+                ptL = ptL.getNext()
+            while ptL != None:
+                right.append(ptL.getData())
+                ptL = ptL.getNext()
+            left = self.recBookTitleSort(left)  #
+            right = self.recBookTitleSort(right)  #
+            return self.mergeByBookTitle(left, right)  # only lines of code that is different
+
+    def mergeByBookTitle(self, L1, L2):
+        ptL1 = L1.getFront()  # starts at the first objects in list1 and list2
+        ptL2 = L2.getFront()
+        result = List()
+
+        while (ptL1 != None) and (ptL2 != None):  # goes until one of the lists runs out of nodes within it
+            a = ptL1.getData()  # book object
+            b = ptL2.getData()
+            if a.lessThanAlpha(b):  # function in book class to compare the titles of each book object
+                result.append(a)  # smallest is added to result
+                ptL1 = ptL1.getNext()  # goes to the next object to compare
+            else:
+                result.append(b)  # b is smaller
+                ptL2 = ptL2.getNext()
+        if ptL1 == None:  # checks which one ran out (ptL1 or ptL2)
+            while ptL2 != None:
+                result.append(ptL2.getData())
+                ptL2 = ptL2.getNext()
+        if ptL2 == None:
+            while ptL1 != None:
+                result.append(ptL1.getData())
+                ptL1 = ptL1.getNext()
+        return result
+
