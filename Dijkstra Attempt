@@ -1,0 +1,41 @@
+def Dij(startLoc, destination):
+    allLocations = {}  # creates a dictionary which will be filled with location IDs: location object(value)
+    for locat in range(Location.listOfLocations.size):
+        allLocations.update({locat: Location.listOfLocations.findID(locat).getData()})
+        # fills allLocations with key(ID) and value(location object)
+    distancesL = {}
+    for con in range(len(allLocations)):  # goes through each location in allLocations
+        newR = dictMyConnections(allLocations[con])  #gets the dictionary of connecting locations
+        distancesL.update({con: newR})  # makes the id(key) and new dictionary of my connections(value) - nested dictionary
+    #print("dictionary of {locationID: {connected location obj ID: distance, ...}} : \n\t" + str(distancesL))
+    #print("all locations: " + str(allLocations))
+    if startLoc.getID() == destination.getID():
+        return True
+    q = PriorityQueue() #in a PQ: nodes are ordered based on distance
+    q.put((0, startLoc.getID())) #distance, locationID
+    visited = {startLoc.getID()}
+    path = {startLoc.getID(): None} #no previous
+    #print(path)
+    while not q.empty(): #as long as there is an element in q
+        distance, locID = q.get() #removes the first element, and returns it
+        #meaning its the shortest
+        if locID == destination.getID():
+            print("found match")
+            print(path)
+            return traceBack(path, locID) #locID is our destination, the path exists
+        location = allLocations[locID]
+        for connection in location.pythonListConnections:
+            neighbor = connection.getTownConnection(location) #the neighbor
+            if neighbor.getID() in visited: #already seen- already has a previous
+                updatedDist = distance + connection.getDistance() #gets the key of the nested dictionary
+                q.get(neighbor.getID()) #removing the element in q and
+                q.put((updatedDist, neighbor.getID())) #adding it back with updated distance
+                path[neighbor.getID()] = locID #previous locs ID
+            else: #we know it has not been seen
+                updatedDist = distance + connection.getDistance() #distance is the old distance
+                q.put((updatedDist, neighbor.getID()))  # adds the new element to q
+                #if updatedDist < distance:
+                path[neighbor.getID()] = locID
+                #check the distance of the old path with the new path -
+                #only update if the new path is shorter than the old one
+    return "no route exists"
